@@ -7,7 +7,7 @@ import Link from "next/link";
 import { User, LogOut, Search, Save, X, Filter, Play, Eye, CheckCircle } from "lucide-react";
 import { auth, db } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { collection, getDocs, addDoc, serverTimestamp, query, where } from "firebase/firestore";
+import { collection, getDocs, addDoc, serverTimestamp, query, where, updateDoc } from "firebase/firestore";
 import { ThemeToggle } from "../theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -424,6 +424,7 @@ export default function DashboardPage() {
         }));
       
       // Create playlist document
+
       const playlistRef = await addDoc(collection(db, "playlists"), {
         userId: user?.uid || "",
         userEmail: user?.email || "",
@@ -431,7 +432,32 @@ export default function DashboardPage() {
         videos: selectedVideoData,
         unlocked: 1
       });
-
+      
+      // Query the existing document in "playlistA" for the current user
+      const playlistAQuery = query(
+        collection(db, "playlistA"),
+        where("userId", "==", user?.uid || "")
+      );
+      
+      const playlistADocs = await getDocs(playlistAQuery);
+      
+      if (!playlistADocs.empty) {
+        // If a document exists, update it with the new playlist reference
+        const playlistADoc = playlistADocs.docs[0]; // Assuming only one document per user
+        await updateDoc(playlistADoc.ref, {
+          ref: playlistRef.id,
+          updatedAt: serverTimestamp(), // Optional: track when it was updated
+        });
+      } else {
+        // If no document exists for the user, create a new one
+        await addDoc(collection(db, "playlistA"), {
+          userId: user?.uid || "",
+          userEmail: user?.email || "",
+          createdAt: serverTimestamp(),
+          ref: playlistRef.id,
+          unlocked: 1,
+        });
+      }
       // Generate playlist URL
       const playlistUrl = `${window.location.origin}/playlist/${playlistRef.id}`;
 

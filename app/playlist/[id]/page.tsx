@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { db } from "@/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { doc, getDoc, query, where, getDocs, updateDoc, collection } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { Lock, Play, CheckCircle, ArrowLeft, Clock } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { auth, db } from "@/firebase";
+import { ThemeToggle } from "@/app/theme-toggle";
 
 interface Video {
   id: string;
@@ -25,9 +25,8 @@ interface Video {
 }
 
 export default function PlaylistPage() {
-  const params = useParams();
-  const playlistId = params?.id as string;
   const router = useRouter();
+  const [playlistId, setPlaylistId] = useState<string | null>(null);
   const [playlist, setPlaylist] = useState<{ videos: Video[]; unlocked: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
@@ -35,27 +34,70 @@ export default function PlaylistPage() {
   const [videoStartTime, setVideoStartTime] = useState<number>(0);
   const [progress, setProgress] = useState<number>(0);
 
+  // Fetch playlist ID based on authenticated user's playlistA reference
   useEffect(() => {
-    const fetchPlaylist = async () => {
-      if (!playlistId) {
+    const fetchPlaylistId = async () => {
+      try {
+        const userId = auth.currentUser?.uid;
+
+        // Ensure userId is defined
+        if (!userId) {
+          toast({
+            title: "Error",
+            description: "User not authenticated",
+            variant: "destructive",
+          });
+          router.push("/login"); // Redirect to login if user is not authenticated
+          return;
+        }
+
+        // Query playlistA for the current user's document
+        const playlistAQuery = query(
+          collection(db, "playlistA"),
+          where("userId", "==", userId)
+        );
+        const playlistADocs = await getDocs(playlistAQuery);
+
+        if (!playlistADocs.empty) {
+          const playlistADoc = playlistADocs.docs[0];
+          const ref = playlistADoc.data().ref; // Reference to the playlist in 'playlists'
+          setPlaylistId(ref);
+        } else {
+          toast({
+            title: "Error",
+            description: "No playlist found for user",
+            variant: "destructive",
+          });
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        console.error("Error fetching playlist ID:", error);
         toast({
           title: "Error",
-          description: "No playlist ID provided",
+          description: "Failed to load playlist ID",
           variant: "destructive",
         });
         router.push("/dashboard");
-        return;
       }
+    };
+
+    fetchPlaylistId();
+  }, [router]);
+
+  // Fetch playlist data when playlistId is available
+  useEffect(() => {
+    const fetchPlaylist = async () => {
+      if (!playlistId) return;
 
       try {
         const docRef = doc(db, "playlists", playlistId);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
           const data = docSnap.data();
           setPlaylist({
             videos: data.videos || [],
-            unlocked: data.unlocked || 1
+            unlocked: data.unlocked || 1,
           });
         } else {
           toast({
@@ -81,26 +123,26 @@ export default function PlaylistPage() {
     fetchPlaylist();
   }, [playlistId, router]);
 
+  // Prevent keyboard shortcuts for video control
   useEffect(() => {
-    // Prevent keyboard shortcuts for video control
     const preventKeyboardShortcuts = (e: KeyboardEvent) => {
-      if ([' ', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      if ([" ", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault();
       }
     };
-    window.addEventListener('keydown', preventKeyboardShortcuts);
-    return () => window.removeEventListener('keydown', preventKeyboardShortcuts);
+    window.addEventListener("keydown", preventKeyboardShortcuts);
+    return () => window.removeEventListener("keydown", preventKeyboardShortcuts);
   }, []);
 
   const handleVideoTimeUpdate = () => {
     if (!videoRef.current) return;
-    
+
     const video = videoRef.current;
     const currentTime = video.currentTime;
-    
+
     // Update progress
     setProgress((currentTime / video.duration) * 100);
-    
+
     // If the video is seeking or the time has jumped significantly
     if (Math.abs(currentTime - videoStartTime) > 1) {
       video.currentTime = videoStartTime;
@@ -120,12 +162,12 @@ export default function PlaylistPage() {
     try {
       // Unlock next video
       const newUnlocked = Math.min(currentVideoIndex + 2, playlist.videos.length);
-      await updateDoc(doc(db, "playlists", playlistId), {
-        unlocked: newUnlocked
-      });
+      await updateDoc(doc(db, "playlists", playlistId!), { unlocked: newUnlocked });
 
-      setPlaylist(prev => prev ? { ...prev, unlocked: newUnlocked } : null);
-      
+      setPlaylist((prev) =>
+        prev ? { ...prev, unlocked: newUnlocked } : null
+      );
+
       toast({
         title: "Video Completed! 🎉",
         description: "Next video has been unlocked.",
@@ -142,7 +184,7 @@ export default function PlaylistPage() {
       toast({
         title: "Error",
         description: "Failed to unlock next video",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -165,7 +207,6 @@ export default function PlaylistPage() {
   if (!playlist) return null;
 
   const currentVideo = playlist.videos[currentVideoIndex];
-
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

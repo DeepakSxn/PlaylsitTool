@@ -1,180 +1,244 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { signOut, User, updateProfile } from "firebase/auth"
-import { auth } from "@/firebase"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/context/AuthContext"
+import { db } from "@/firebase"
+import { doc, updateDoc, getDoc } from "firebase/firestore"
+import { toast } from "@/components/ui/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { Loader2 } from "lucide-react"
+import { Loader2, Save, Video, Mail, Gift, Bell } from "lucide-react"
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [displayName, setDisplayName] = useState("");
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(false)
   const [settings, setSettings] = useState({
+    siteName: "EOXS Video Tool",
+    siteDescription: "Your learning platform",
+    contactEmail: "contact@eoxs.com",
+    giftCardAmount: "5",
+    giftCardEmailTemplate: "Thank you for your feedback! Here's your $5 Starbucks gift card.",
     emailNotifications: true,
-    darkMode: false,
-    autoPlay: true,
-  });
+    autoPlayVideos: true,
+    showGiftCardIncentive: true,
+  })
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      if (!currentUser) {
-        router.push("/login");
-        return;
+    const loadSettings = async () => {
+      try {
+        const settingsDoc = await getDoc(doc(db, "settings", "general"))
+        if (settingsDoc.exists()) {
+          setSettings(prev => ({
+            ...prev,
+            ...settingsDoc.data()
+          }))
+        }
+      } catch (error) {
+        console.error("Error loading settings:", error)
       }
-      setUser(currentUser);
-      setDisplayName(currentUser.displayName || "");
-    });
+    }
+    loadSettings()
+  }, [])
 
-    return () => unsubscribe();
-  }, [router]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    setIsLoading(true);
+    setLoading(true)
     try {
-      await updateProfile(user, {
-        displayName,
-      });
-      // Show success message or handle success
+      await updateDoc(doc(db, "settings", "general"), settings)
+      toast({
+        title: "Settings Updated",
+        description: "Your changes have been saved successfully.",
+      })
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error updating settings:", error)
+      toast({
+        title: "Update Failed",
+        description: "There was an error saving your changes. Please try again.",
+        variant: "destructive",
+      })
     } finally {
-      setIsLoading(false);
+      setLoading(false)
     }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      router.push("/login");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+    <div className="container mx-auto px-4 py-6 max-w-5xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground mt-2">
+          Manage your application settings and preferences.
+        </p>
+      </div>
 
       <div className="grid gap-6">
-        {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Settings</CardTitle>
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="border-b bg-muted/30 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5 text-primary" />
+              General Settings
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="siteName">Site Name</Label>
                 <Input
-                  id="email"
+                  id="siteName"
+                  value={settings.siteName}
+                  onChange={(e) =>
+                    setSettings({ ...settings, siteName: e.target.value })
+                  }
+                  disabled={loading}
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="siteDescription">Site Description</Label>
+                <Input
+                  id="siteDescription"
+                  value={settings.siteDescription}
+                  onChange={(e) =>
+                    setSettings({ ...settings, siteDescription: e.target.value })
+                  }
+                  disabled={loading}
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contactEmail">Contact Email</Label>
+                <Input
+                  id="contactEmail"
                   type="email"
-                  value={user?.email || ""}
-                  disabled
+                  value={settings.contactEmail}
+                  onChange={(e) =>
+                    setSettings({ ...settings, contactEmail: e.target.value })
+                  }
+                  disabled={loading}
+                  className="bg-background"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                />
-              </div>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Profile"
-                )}
-              </Button>
             </form>
           </CardContent>
         </Card>
 
-        {/* Application Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Application Settings</CardTitle>
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="border-b bg-muted/30 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              Gift Card Settings
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive email notifications about video analytics
-                </p>
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="giftCardAmount">Gift Card Amount ($)</Label>
+                <Input
+                  id="giftCardAmount"
+                  type="number"
+                  value={settings.giftCardAmount}
+                  onChange={(e) =>
+                    setSettings({ ...settings, giftCardAmount: e.target.value })
+                  }
+                  disabled={loading}
+                  className="bg-background"
+                />
               </div>
-              <Switch
-                checked={settings.emailNotifications}
-                onCheckedChange={(checked) =>
-                  setSettings((prev) => ({ ...prev, emailNotifications: checked }))
-                }
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Dark Mode</Label>
-                <p className="text-sm text-muted-foreground">
-                  Enable dark mode for the dashboard
-                </p>
+              <div className="space-y-2">
+                <Label htmlFor="giftCardEmailTemplate">Gift Card Email Template</Label>
+                <Input
+                  id="giftCardEmailTemplate"
+                  value={settings.giftCardEmailTemplate}
+                  onChange={(e) =>
+                    setSettings({ ...settings, giftCardEmailTemplate: e.target.value })
+                  }
+                  disabled={loading}
+                  className="bg-background"
+                />
               </div>
-              <Switch
-                checked={settings.darkMode}
-                onCheckedChange={(checked) =>
-                  setSettings((prev) => ({ ...prev, darkMode: checked }))
-                }
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Auto-Play Videos</Label>
-                <p className="text-sm text-muted-foreground">
-                  Automatically play videos on hover
-                </p>
+              <div className="flex items-center justify-between py-2">
+                <div className="space-y-0.5">
+                  <Label>Show Gift Card Incentive</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Display gift card offer in feedback forms
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.showGiftCardIncentive}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, showGiftCardIncentive: checked })
+                  }
+                />
               </div>
-              <Switch
-                checked={settings.autoPlay}
-                onCheckedChange={(checked) =>
-                  setSettings((prev) => ({ ...prev, autoPlay: checked }))
-                }
-              />
-            </div>
+            </form>
           </CardContent>
         </Card>
 
-        {/* Danger Zone */}
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-600">Danger Zone</CardTitle>
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="border-b bg-muted/30 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              Notification Settings
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-red-600">Sign Out</Label>
-                <p className="text-sm text-muted-foreground">
-                  Sign out of your account
-                </p>
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex items-center justify-between py-2">
+                <div className="space-y-0.5">
+                  <Label>Email Notifications</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive email notifications for new feedback and recommendations
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.emailNotifications}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, emailNotifications: checked })
+                  }
+                />
               </div>
-              <Button variant="destructive" onClick={handleSignOut}>
-                Sign Out
-              </Button>
-            </div>
+              <div className="flex items-center justify-between py-2">
+                <div className="space-y-0.5">
+                  <Label>Auto-Play Videos</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically play videos when they come into view
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.autoPlayVideos}
+                  onCheckedChange={(checked) =>
+                    setSettings({ ...settings, autoPlayVideos: checked })
+                  }
+                />
+              </div>
+            </form>
           </CardContent>
         </Card>
+
+        <div className="flex justify-end mt-6">
+          <Button 
+            onClick={handleSubmit} 
+            disabled={loading}
+            className="bg-primary hover:bg-primary/90 text-white px-6"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save All Changes
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
-  );
+  )
 } 

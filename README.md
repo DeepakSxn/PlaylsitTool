@@ -135,6 +135,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Rohit Jha - [GitHub](https://github.com/Rohitjha17)
+Deepak Saxena - [GitHub](https://github.com/DeepakSxn)
 
-Project Link: [https://github.com/Rohitjha17/eoxs-video-tool](https://github.com/Rohitjha17/eoxs-video-tool) 
+Project Link: [(https://github.com/DeepakSxn/PlaylsitTool/)]

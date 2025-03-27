@@ -1,4 +1,4 @@
-# EOXS Video Tool
+# PlaylistVideo Tool
 
 A modern web application for video management, analytics, and playlist creation built with Next.js, Firebase, and Tailwind CSS.
 

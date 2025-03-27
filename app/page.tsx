@@ -17,7 +17,7 @@ export default function Page() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="h-16 flex items-center justify-between px-4 sm:px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800">
+      <header className="h-16 flex items-center justify-between px-2 sm:px-6 md:px-8 border-b border-neutral-200 dark:border-neutral-800">
         <Link href="/" className="flex items-center">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/LOGO-iZKjcWij4vfxfUuaJ19T8bUqjZrXoP.jpeg"
@@ -37,12 +37,12 @@ export default function Page() {
 
       {/* Main content */}
       <main className="flex-grow flex items-center justify-center p-4 sm:p-6 md:p-8">
-        <div className="text-center w-full max-w-3xl px-4">
+        <div className="text-center  w-full max-w-3xl px-4">
           <h1 className="text-4xl font-bold mb-6">Welcome to EOXS Video Tool</h1>
           <p className="text-xl text-neutral-600 dark:text-neutral-300 mb-8 max-w-2xl mx-auto">
             A powerful platform for managing and sharing video content in the steel industry
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center p-8">
             <Link href="/login">
               <Button size="lg" className="w-full sm:w-auto">
                 Get Started
@@ -53,8 +53,8 @@ export default function Page() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-neutral-100 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 py-10">
-        <div className="container mx-auto px-4">
+      <footer className="bg-neutral-100 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 py-4">
+        <div className="container mx-auto px-2  ">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Company Info Column */}
             <div className="space-y-4">

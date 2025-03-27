@@ -15,10 +15,12 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  LineChart
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/app/theme-toggle"
+import { Chart } from "chart.js"
 
 const navigation = [
   { name: "Dashboard", href: "/admin-dashboard", icon: LayoutDashboard },
@@ -27,6 +29,7 @@ const navigation = [
   { name: "Analytics", href: "/admin-dashboard/analytics", icon: BarChart },
   { name: "Feedback", href: "/admin-dashboard/feedback", icon: MessageSquare },
   { name: "Reports", href: "/admin-dashboard/reports", icon: FileText },
+  { name: "Individual", href: "/admin-dashboard/Individual", icon: LineChart },
   { name: "Settings", href: "/admin-dashboard/settings", icon: Settings },
 ]
 

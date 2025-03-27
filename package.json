@@ -43,6 +43,8 @@
     "chart.js": "^4.4.8",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.6.0",
+    "cloudinary-video-analytics": "^1.7.1",
+    "cloudinary-video-player": "^2.3.4",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",

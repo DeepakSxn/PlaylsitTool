@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore"
-import { auth, db } from "@/firebase"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { collection, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
+import { auth, db } from "@/firebase";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
   Users,
@@ -12,7 +12,7 @@ import {
   Clock,
   TrendingUp,
   Activity,
-} from "lucide-react"
+} from "lucide-react";
 
 interface Video {
   id: string;
@@ -28,38 +28,38 @@ interface Video {
 }
 
 export default function AdminDashboard() {
-  const router = useRouter()
-  const [videos, setVideos] = useState<Video[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     totalViews: 0,
     totalWatchTime: 0,
     totalVideos: 0,
     avgEngagement: 0,
-  })
+  });
 
   useEffect(() => {
     const checkAuth = auth.onAuthStateChanged((user) => {
       if (!user) {
-        router.push("/login")
-        return
+        router.push("/login");
+        return;
       }
-      loadVideos()
-    })
+      loadVideos();
+    });
 
-    return () => checkAuth()
-  }, [router])
+    return () => checkAuth();
+  }, [router]);
 
   const loadVideos = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       const videosQuery = query(
         collection(db, "videos"),
         orderBy("createdAt", "desc")
-      )
-      const querySnapshot = await getDocs(videosQuery)
+      );
+      const querySnapshot = await getDocs(videosQuery);
       const videoData = querySnapshot.docs.map(doc => {
-        const data = doc.data()
+        const data = doc.data();
         return {
           id: doc.id,
           title: data.title || "Untitled Video",
@@ -71,37 +71,37 @@ export default function AdminDashboard() {
           watchTime: Number(data.watchTime) || 0,
           engagement: Number(data.engagement) || 0,
           thumbnailUrl: data.thumbnailUrl,
-        }
-      }) as Video[]
-      
-      setVideos(videoData)
-      
+        };
+      }) as Video[];
+
+      setVideos(videoData);
+
       // Calculate stats with proper number conversion
-      const totalViews = videoData.reduce((sum, video) => sum + (video.views || 0), 0)
-      const totalWatchTime = videoData.reduce((sum, video) => sum + (video.watchTime || 0), 0)
-      const totalEngagement = videoData.reduce((sum, video) => sum + (video.engagement || 0), 0)
-      const avgEngagement = videoData.length > 0 ? totalEngagement / videoData.length : 0
+      const totalViews = videoData.reduce((sum, video) => sum + (video.views || 0), 0);
+      const totalWatchTime = videoData.reduce((sum, video) => sum + (video.watchTime || 0), 0);
+      const totalEngagement = videoData.reduce((sum, video) => sum + (video.engagement || 0), 0);
+      const avgEngagement = videoData.length > 0 ? totalEngagement / videoData.length : 0;
 
       setStats({
         totalViews,
         totalWatchTime,
         totalVideos: videoData.length,
         avgEngagement,
-      })
+      });
 
-      console.log("Loaded videos:", videoData)
+      console.log("Loaded videos:", videoData);
       console.log("Calculated stats:", {
         totalViews,
         totalWatchTime,
         totalVideos: videoData.length,
         avgEngagement,
-      })
+      });
     } catch (error) {
-      console.error("Error loading videos:", error)
+      console.error("Error loading videos:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -224,9 +224,9 @@ export default function AdminDashboard() {
                 <div className="space-y-8">
                   {Object.entries(
                     videos.reduce((acc, video) => {
-                      const category = video.category || "Uncategorized"
-                      acc[category] = (acc[category] || 0) + 1
-                      return acc
+                      const category = video.category || "Uncategorized";
+                      acc[category] = (acc[category] || 0) + 1;
+                      return acc;
                     }, {} as Record<string, number>)
                   )
                     .sort(([, a], [, b]) => b - a)
@@ -248,5 +248,5 @@ export default function AdminDashboard() {
         </>
       )}
     </div>
-  )
+  );
 }

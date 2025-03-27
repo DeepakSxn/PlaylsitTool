@@ -138,7 +138,7 @@ export default function Login() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full bg-[#4CAF50] hover:bg-[#45a049]" disabled={loading}>
+              <Button type="submit" className="w-full bg-[#000000] hover:bg-[#0c0e0c]" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>

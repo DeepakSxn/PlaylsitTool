@@ -54,7 +54,7 @@ const AdminLoginPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
       <header className="w-full border-b bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between max-w-7xl">
+        <div className="flex items-center justify-between w-full max-w-screen-2xl mx-auto">
           <Link href="/" className="flex items-center">
             <Image
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/LOGO-iZKjcWij4vfxfUuaJ19T8bUqjZrXoP.jpeg"
@@ -157,9 +157,9 @@ const AdminLoginPage = () => {
       </main>
 
       <footer className="w-full border-t bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
-          <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
-            <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between w-full max-w-screen-2xl mx-auto">
+          <div className="flex flex-col  gap-4 md:flex-row md:justify-between">
+            <div className="flex items-center gap-3 ">
               <Image
                 src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/LOGO-iZKjcWij4vfxfUuaJ19T8bUqjZrXoP.jpeg"
                 alt="EOXS Logo"
@@ -169,9 +169,16 @@ const AdminLoginPage = () => {
               />
               <p className="text-sm text-muted-foreground">Where Steel Meets Technology</p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} EOXS. All rights reserved.
+            <div className="flex items-center pl-11 pr-11 mr-52 ml-40 ">
+            <p className="text-sm text-muted-foreground ">
+          
             </p>
+            </div>
+            <div className="flex items-center gap-4 ml-80 pl-40 ">
+            <p className="text-sm text-muted-foreground ">
+            © {new Date().getFullYear()} EOXS. All rights reserved.
+            </p>
+            </div>
           </div>
         </div>
       </footer>
